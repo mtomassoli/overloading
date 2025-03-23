@@ -2,34 +2,14 @@
 
 ## What
 
-Coming from C++, I was surprised to learn that Rust doesn't support *function overloading*. In this article I'll present a simple workaround.
-
-As far as I can tell:
-
-* Rust has powerful type inference (an extension of Hindley–Milner).
-* Supporting function overloading in Rust would make type inference intractable:
-  * Solution 1: drop overloading, like Rust did.
-  * Solution 2: weaken type inference, like Scala did.
-* As opposed to C++, Rust does type checking *before* monomorphization:
-  * In Rust, monomorphization produces valid code for all valid concrete types.
-    * Pros:
-      * Better error messages.
-      * Better separation between generic code and concrete types.
-      * More predictable compilation times.
-  * In C++, every single template instantiation is type-checked and can fail.
-    * Pro:
-      * More powerful.
-
-I mentioned the difference between Rust's monomorphization and template instantiation because it informs the workaround discussed in this article.
-
 Suppose that:
 
 * A function `f` takes an argument `x` that can implement either `Trait1` or `Trait2`.
 * `f` executes different code depending on whether `x` implements `Trait1` or `Trait2`.
 
-I say that `f` is *trait-overloaded*.
+We say that `f` is *trait-overloaded*.
 
-If we add the requirement that the caller has to explicitly indicate the trait that `f` must use for `x`, then we have *manual* trait overloading.
+If we add the requirement that the caller must explicitly indicate the trait that `f` must use for `x`, then we have *manual* trait overloading.
 
 Here's an example:
 
@@ -42,6 +22,15 @@ f(AsTrait2(&x1));
 In the code above, we assume that `x1` implements both traits, so we can select either one for `x1`.
 
 To simplify the language, I'll say that in the first call `x1` *uses* `Trait1`, and so on. That makes sense, since it's not really about what traits `x1` implements, but about what traits are effectively being used by `f`.
+
+### Without loss of generality
+
+I'll limit my exposition to this simple example with a single argument and two traits, but the method is completely general:
+
+* One can have multiple arguments and even mix regular and `AsTrait` ones.
+* One can support multiple traits or groups of traits:
+  * We could have an `AsConvex` that requires the implementation of several traits.
+  * We could have a *marker* `AsFinite`.
 
 ## How
 
